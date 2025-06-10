@@ -51,5 +51,6 @@ jobs:
 
       - name: Get Service URL
         run: |
-          SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
+          SERVICE_ARN=$(aws apprunner list-services --region us-east-1 --query "ServiceSummaryList[?ServiceName=='echo-api-service'].ServiceArn" --output text)
+          SERVICE_URL=$(aws apprunner describe-service --service-arn "$SERVICE_ARN" --region us-east-1 --query 'Service.ServiceUrl' --output text)
           echo "App Runner Service URL: $SERVICE_URL" 
