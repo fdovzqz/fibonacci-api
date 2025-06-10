@@ -8,13 +8,13 @@ Una API REST simple que calcula números de la secuencia de Fibonacci, desplegad
 - **Health check**: `/health` - Verifica el estado del servicio
 - **Despliegue**: Configurado para AWS App Runner con Docker
 - **Escalabilidad**: Automáticamente escalable según la demanda
-- **Compatibilidad**: Optimizada para Python 3.9 (compatible con AWS App Runner)
+- **Compatibilidad**: Optimizada para Python 3.8 (máxima compatibilidad con AWS App Runner)
 
 ## 📋 Prerrequisitos
 
 - Cuenta de AWS con permisos para App Runner
 - Docker instalado (para pruebas locales)
-- Python 3.9+ (para desarrollo local)
+- Python 3.8+ (para desarrollo local)
 
 ## 🏗️ Estructura del Proyecto
 
@@ -169,9 +169,10 @@ gunicorn --bind 0.0.0.0:8000 app:app
 **Síntoma**: El build falla con este mensaje de error.
 
 **Solución**: 
-- Verifica que `apprunner.yaml` use `runtime: python3.9` y `runtime-version: 3.9`
-- Verifica que `Dockerfile` use `FROM python:3.9-slim`
+- Verifica que `apprunner.yaml` use `runtime: python3` (sin especificar versión)
+- Verifica que `Dockerfile` use `FROM python:3.8-slim`
 - Las versiones soportadas por App Runner son: Python 3.7, 3.8, 3.9, 3.10
+- **Importante**: No especifiques `runtime-version` en el `apprunner.yaml`
 
 #### Build falla por dependencias
 **Síntoma**: Error durante la instalación de dependencias.
@@ -201,4 +202,4 @@ gunicorn --bind 0.0.0.0:8000 app:app
 - **Memoria**: La implementación actual es iterativa, eficiente en memoria
 - **Seguridad**: El endpoint es público, considera agregar autenticación si es necesario
 - **Costos**: App Runner cobra por vCPU y memoria utilizados
-- **Runtime**: Configurado para Python 3.9 para máxima compatibilidad con AWS App Runner
+- **Runtime**: Configurado para Python 3.8 para máxima compatibilidad con AWS App Runner
