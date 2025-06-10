@@ -1,5 +1,5 @@
 {
-  "app": "npx ts-node --prefer-ts-exts bin/echo-api-cdk.ts",
+  "app": "npx ts-node --prefer-ts-exts src/echo-api-cdk.ts",
   "watch": {
     "include": [
       "**"

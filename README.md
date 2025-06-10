@@ -19,9 +19,8 @@ API simple de echo que devuelve en formato JSON lo que recibe. Configurada para 
 │   ├── pnpm-lock.yaml
 │   ├── tsconfig.json
 │   ├── cdk.json
-│   ├── bin/
-│   │   └── echo-api-cdk.ts
-│   └── lib/
+│   └── src/
+│       ├── echo-api-cdk.ts
 │       └── echo-api-cdk-stack.ts
 │
 ├── .github/
@@ -79,7 +78,7 @@ curl https://tu-app-runner-url/health
 ### Prerrequisitos
 
 1. **AWS CLI configurado** con credenciales apropiadas
-2. **Node.js 18+** instalado
+2. **Node.js 20+** instalado
 3. **pnpm** instalado: `npm install -g pnpm`
 4. **CDK CLI** instalado globalmente: `pnpm add -g aws-cdk`
 5. **Repositorio en GitHub** con el código
@@ -99,7 +98,7 @@ curl https://tu-app-runner-url/health
    ```
 
 3. **Configurar el repositorio de GitHub:**
-   Editar `infra/lib/echo-api-cdk-stack.ts` y cambiar la URL del repositorio:
+   Editar `infra/src/echo-api-cdk-stack.ts` y cambiar la URL del repositorio:
    ```typescript
    repositoryUrl: 'https://github.com/TU_USUARIO/echo-api', // Cambiar por tu repositorio
    ```
