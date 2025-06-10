@@ -8,12 +8,13 @@ Una API REST simple que calcula números de la secuencia de Fibonacci, desplegad
 - **Health check**: `/health` - Verifica el estado del servicio
 - **Despliegue**: Configurado para AWS App Runner con Docker
 - **Escalabilidad**: Automáticamente escalable según la demanda
+- **Compatibilidad**: Optimizada para Python 3.9 (compatible con AWS App Runner)
 
 ## 📋 Prerrequisitos
 
 - Cuenta de AWS con permisos para App Runner
 - Docker instalado (para pruebas locales)
-- Python 3.11+ (para desarrollo local)
+- Python 3.9+ (para desarrollo local)
 
 ## 🏗️ Estructura del Proyecto
 
@@ -147,37 +148,6 @@ Verifica el estado del servicio.
 }
 ```
 
-### Ejemplos de Uso
-
-```bash
-# Obtener el 10º número de Fibonacci
-curl https://tu-url-apprunner.awsapprunner.com/fibonacci/10
-
-# Obtener el 20º número de Fibonacci
-curl https://tu-url-apprunner.awsapprunner.com/fibonacci/20
-
-# Verificar el estado del servicio
-curl https://tu-url-apprunner.awsapprunner.com/health
-```
-
-## 🔧 Configuración Avanzada
-
-### Variables de Entorno
-Puedes agregar variables de entorno en la configuración de App Runner:
-- `PORT`: Puerto del servicio (por defecto 8000)
-- `FLASK_ENV`: Entorno de Flask (development/production)
-
-### Escalado Automático
-App Runner maneja automáticamente el escalado basado en:
-- Número de requests concurrentes
-- Uso de CPU
-- Uso de memoria
-
-### Monitoreo
-- **CloudWatch Logs**: Automáticamente habilitados
-- **Métricas**: CPU, memoria, requests por segundo
-- **Trazas**: X-Ray disponible para debugging
-
 ## 🛠️ Desarrollo Local
 
 ```bash
@@ -191,34 +161,33 @@ python app.py
 gunicorn --bind 0.0.0.0:8000 app:app
 ```
 
-## 📝 Notas Importantes
-
-- **Límites**: Para números muy grandes (> 1000), la función puede ser lenta
-- **Memoria**: La implementación actual es iterativa, eficiente en memoria
-- **Seguridad**: El endpoint es público, considera agregar autenticación si es necesario
-- **Costos**: App Runner cobra por vCPU y memoria utilizados
-
-## 🔄 Actualizaciones
-
-Para actualizar el servicio:
-1. Haz cambios en tu código
-2. Haz commit y push a GitHub
-3. App Runner detectará automáticamente los cambios y hará un nuevo deployment
-
 ## 🆘 Troubleshooting
 
-### Problemas Comunes
+### Problemas Comunes de Deployment
 
-1. **Build falla**:
-   - Verifica que `requirements.txt` esté correcto
-   - Revisa los logs de build en App Runner
+#### Error: "The specified runtime version is not supported"
+**Síntoma**: El build falla con este mensaje de error.
 
-2. **Aplicación no responde**:
-   - Verifica que el puerto 8000 esté configurado correctamente
-   - Revisa los logs de la aplicación
+**Solución**: 
+- Verifica que `apprunner.yaml` use `runtime: python3.9` y `runtime-version: 3.9`
+- Verifica que `Dockerfile` use `FROM python:3.9-slim`
+- Las versiones soportadas por App Runner son: Python 3.7, 3.8, 3.9, 3.10
 
-3. **Errores de memoria**:
-   - Aumenta la memoria asignada en la configuración de App Runner
+#### Build falla por dependencias
+**Síntoma**: Error durante la instalación de dependencias.
+
+**Solución**:
+- Verifica que `requirements.txt` esté correcto
+- Revisa los logs de build en App Runner
+- Asegúrate de que las versiones de las dependencias sean compatibles
+
+#### Aplicación no responde
+**Síntoma**: La aplicación se despliega pero no responde a requests.
+
+**Solución**:
+- Verifica que el puerto 8000 esté configurado correctamente
+- Revisa los logs de la aplicación en CloudWatch
+- Usa el endpoint `/health` para verificar el estado
 
 ### Logs y Debugging
 
@@ -226,3 +195,10 @@ Para actualizar el servicio:
 - Puedes ver logs en tiempo real durante el deployment
 - Usa el endpoint `/health` para verificar el estado del servicio
 
+## 📝 Notas Importantes
+
+- **Límites**: Para números muy grandes (> 1000), la función puede ser lenta
+- **Memoria**: La implementación actual es iterativa, eficiente en memoria
+- **Seguridad**: El endpoint es público, considera agregar autenticación si es necesario
+- **Costos**: App Runner cobra por vCPU y memoria utilizados
+- **Runtime**: Configurado para Python 3.9 para máxima compatibilidad con AWS App Runner
