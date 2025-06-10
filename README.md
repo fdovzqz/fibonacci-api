@@ -1,184 +1,189 @@
-# Echo API - AWS App Runner Deployment
+# Fibonacci API
 
-API simple de echo que devuelve en formato JSON lo que recibe. Configurada para desplegar en AWS App Runner usando GitHub Actions y AWS CLI.
+Una API REST simple que calcula números de la secuencia de Fibonacci, desplegada en AWS App Runner usando CDK.
 
-## 🚀 Estado del Proyecto
+## 🚀 Características
 
-✅ **Listo para deployment** - Configuración completa para AWS App Runner con AWS CLI
+- **API REST**: Endpoint para calcular números de Fibonacci por posición
+- **Health Check**: Endpoint de verificación de salud
+- **Containerizado**: Aplicación Dockerizada para fácil despliegue
+- **Infraestructura como Código**: Despliegue automatizado con AWS CDK
+- **Escalabilidad**: Desplegado en AWS App Runner para escalabilidad automática
 
-## 📁 Estructura del Proyecto
+## 📋 Prerrequisitos
+
+- Python 3.11+
+- Docker
+- AWS CLI configurado
+- AWS CDK CLI
+- Node.js (para CDK)
+
+## 🏗️ Estructura del Proyecto
 
 ```
-/
-├── app/                # Código fuente de la app (contenedor)
-│   ├── app.py          # Aplicación Flask
-│   ├── requirements.txt # Dependencias Python
-│   ├── Dockerfile      # Configuración Docker
-│   ├── test-local.sh   # Script de pruebas locales
-│   ├── apprunner.yaml  # Configuración App Runner
-│   └── .env.example    # Variables de entorno de ejemplo
-│
-├── .github/
-│   └── workflows/
-│       └── deploy.yml  # CI/CD con GitHub Actions
-│
-├── README.md
-└── .gitignore
+echo/
+├── app.py                 # Aplicación Flask principal
+├── requirements.txt       # Dependencias de Python
+├── Dockerfile            # Configuración de Docker
+├── apprunner.yaml        # Configuración de AWS App Runner
+├── cdk/                  # Infraestructura como Código
+│   ├── app.py           # Punto de entrada de CDK
+│   ├── fibonacci_stack.py # Stack de AWS CDK
+│   └── requirements.txt  # Dependencias de CDK
+└── README.md            # Este archivo
 ```
 
-## 🔧 Tecnologías Utilizadas
+## 🛠️ Instalación y Desarrollo Local
 
-- **Backend:** Flask (Python 3.11)
-- **Deployment:** AWS App Runner
-- **CI/CD:** GitHub Actions + AWS CLI
-- **Container:** Docker
-
-## 🌐 Endpoints
-
-### POST /echo
-Devuelve en formato JSON los datos recibidos en el request.
-
-**Ejemplo:**
+### 1. Clonar el repositorio
 ```bash
-curl -X POST https://tu-app-runner-url/echo \
-  -H "Content-Type: application/json" \
-  -d '{"message": "Hello World"}'
+git clone <tu-repositorio>
+cd echo
 ```
 
-**Respuesta:**
+### 2. Instalar dependencias
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Ejecutar localmente
+```bash
+python app.py
+```
+
+La aplicación estará disponible en `http://localhost:8000`
+
+## 🐳 Ejecutar con Docker
+
+### Construir la imagen
+```bash
+docker build -t fibonacci-api .
+```
+
+### Ejecutar el contenedor
+```bash
+docker run -p 8000:8000 fibonacci-api
+```
+
+## 📡 API Endpoints
+
+### GET /fibonacci/{position}
+Calcula el número de Fibonacci en la posición especificada.
+
+**Parámetros:**
+- `position` (integer): Posición en la secuencia (debe ser >= 0)
+
+**Ejemplo de respuesta:**
 ```json
 {
-  "message": "Hello World"
+  "position": 10,
+  "value": 55
+}
+```
+
+**Ejemplo de error:**
+```json
+{
+  "error": "Position must be non-negative"
 }
 ```
 
 ### GET /health
-Endpoint de salud para verificar que la aplicación está funcionando.
+Verifica el estado de salud de la aplicación.
 
-**Ejemplo:**
-```bash
-curl https://tu-app-runner-url/health
-```
-
-**Respuesta:**
+**Ejemplo de respuesta:**
 ```json
 {
-  "status": "healthy",
-  "message": "Echo service is running"
+  "status": "healthy"
 }
 ```
 
-## 🚀 Deployment en AWS (Automatizado)
+## 🐳 Despliegue en AWS
 
-### Prerrequisitos
-
-1. **AWS CLI configurado** con credenciales apropiadas
-2. **Repositorio en GitHub** con el código
-3. **Configurar GitHub Secrets:**
-   - `AWS_ACCESS_KEY_ID`: Tu AWS Access Key ID
-   - `AWS_SECRET_ACCESS_KEY`: Tu AWS Secret Access Key
-
-### Deployment Automático
-
-El deployment se ejecuta automáticamente cuando se hace push a la rama `main` gracias al workflow de GitHub Actions. El workflow utiliza AWS CLI para crear o actualizar el servicio en App Runner.
-
-### Workflow relevante (`.github/workflows/deploy.yml`):
-
-```yaml
-- name: Create App Runner Service
-  run: |
-    aws apprunner create-service \
-      --service-name echo-api-service \
-      --source-configuration '{
-        "AutoDeploymentsEnabled": true,
-        "CodeRepository": {
-          "CodeConfiguration": {
-            "ConfigurationSource": "REPOSITORY"
-          },
-          "RepositoryUrl": "https://github.com/fdovzqz/echo-docker.git",
-          "SourceCodeVersion": {
-            "Type": "BRANCH",
-            "Value": "main"
-          }
-        }
-      }' \
-      --instance-configuration '{
-        "Cpu": "1 vCPU",
-        "Memory": "2 GB"
-      }' \
-      --region us-east-1 || echo "Service may already exist"
-
-- name: Get Service URL
-  run: |
-    SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
-    echo "App Runner Service URL: $SERVICE_URL"
+### 1. Configurar CDK
+```bash
+cd cdk
+pip install -r requirements.txt
+cdk bootstrap
 ```
 
-## 🧪 Desarrollo Local
+### 2. Actualizar configuración
+Edita `cdk/fibonacci_stack.py` y actualiza:
+- `repository_url`: URL de tu repositorio GitHub
+- `service_name`: Nombre del servicio (opcional)
 
-1. **Configurar variables de entorno (opcional):**
-   ```bash
-   cd app
-   cp .env.example .env
-   # Editar .env según sea necesario
-   ```
-
-2. **Instalar dependencias:**
-   ```bash
-   cd app
-   pip3 install -r requirements.txt
-   ```
-
-3. **Ejecutar aplicación:**
-   ```bash
-   cd app
-   python3 app.py
-   ```
-
-4. **Probar endpoints:**
-   ```bash
-   curl -X POST http://localhost:5000/echo \
-     -H "Content-Type: application/json" \
-     -d '{"test": "data"}'
-   
-   curl http://localhost:5000/health
-   ```
-
-5. **Probar todo con script:**
-   ```bash
-   cd app
-   ./test-local.sh
-   ```
-
-## 🐳 Docker
-
-También puedes ejecutar la aplicación usando Docker:
-
+### 3. Desplegar
 ```bash
-cd app
-docker build -t echo-api .
-docker run -p 5000:5000 echo-api
+cdk deploy
+```
+
+### 4. Obtener la URL del servicio
+```bash
+aws apprunner list-services
+```
+
+## 🔧 Configuración
+
+### Variables de Entorno
+- `PORT`: Puerto en el que se ejecuta la aplicación (default: 8000)
+
+### Configuración de App Runner
+- **CPU**: 0.25 vCPU
+- **Memoria**: 0.5 GB
+- **Health Check**: `/health` cada 10 segundos
+- **Auto-deploy**: Habilitado
+
+## 🧪 Testing
+
+### Probar endpoints localmente
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Fibonacci
+curl http://localhost:8000/fibonacci/10
+```
+
+### Probar con Docker
+```bash
+# Health check
+curl http://localhost:8000/health
+
+# Fibonacci
+curl http://localhost:8000/fibonacci/15
 ```
 
 ## 📊 Monitoreo
 
-Una vez desplegado, podrás:
-- Ver logs en CloudWatch Logs
-- Acceder a métricas automáticas de App Runner
-- Recibir la URL del servicio en los outputs del workflow
+La aplicación incluye:
+- Health check automático en `/health`
+- Logs de aplicación disponibles en CloudWatch
+- Métricas de App Runner en AWS Console
 
-## 🔧 Troubleshooting
+## 🔒 Seguridad
 
-- **Error de credenciales:** Verifica que los GitHub Secrets estén configurados
-- **Error de bucket S3:** Si usaste CDK antes, asegúrate de borrar los buckets y stacks antiguos
-- **Logs útiles:**
-  - **GitHub Actions:** Revisa la pestaña Actions en tu repo
-  - **AWS App Runner:** Consola de AWS > App Runner > Tu servicio > Logs
+- La aplicación se ejecuta en un contenedor aislado
+- IAM roles configurados para acceso mínimo necesario
+- Health checks para detectar fallos
 
-## 🤝 Contribución
+## 🚨 Limitaciones
 
-1. Fork el repositorio
+- La función de Fibonacci es iterativa y puede ser lenta para números muy grandes
+- No hay límite de entrada configurado (puede causar timeouts)
+- Sin autenticación implementada
+
+## 🤝 Contribuir
+
+1. Fork el proyecto
 2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request 
+5. Abre un Pull Request
+
+## 📝 Licencia
+
+Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+## 📞 Soporte
+
+Para soporte, por favor abrir un issue en el repositorio o contactar al equipo de desarrollo. 
