@@ -1,0 +1,23 @@
+{
+  "name": "echo-api-cdk",
+  "version": "1.0.0",
+  "description": "CDK deployment for Echo API on AWS App Runner",
+  "main": "lib/echo-api-cdk-stack.js",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "deploy": "cdk deploy",
+    "destroy": "cdk destroy",
+    "diff": "cdk diff"
+  },
+  "devDependencies": {
+    "@types/node": "20.5.0",
+    "aws-cdk": "2.95.0",
+    "ts-node": "^10.9.1",
+    "typescript": "~5.1.6"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.95.0",
+    "constructs": "^10.0.0"
+  }
+} 

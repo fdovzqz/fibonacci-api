@@ -20,14 +20,7 @@ def echo():
                 data = dict(request.form)
         
         # Crear respuesta
-        response = {
-            "status": "success",
-            "message": "Echo response",
-            "data": data,
-            "method": request.method,
-            "headers": dict(request.headers)
-        }
-        
+        response = data
         return jsonify(response), 200
     
     except Exception as e:
