@@ -12,61 +12,44 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20'
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v2
-      with:
-        version: 8
+      - name: Verify AWS account
+        run: aws sts get-caller-identity
 
-    - name: Install dependencies
-      run: cd infra && pnpm install
-
-    - name: Build TypeScript
-      run: cd infra && pnpm run build
-
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ env.AWS_REGION }}
-
-    - name: Verify AWS account
-      run: aws sts get-caller-identity
-
-    - name: Create App Runner Service
-      run: |
-        aws apprunner create-service \
-          --service-name echo-api-service \
-          --source-configuration '{
-            "AutoDeploymentsEnabled": true,
-            "CodeRepository": {
-              "CodeConfiguration": {
-                "ConfigurationSource": "REPOSITORY"
-              },
-              "RepositoryUrl": "https://github.com/fdovzqz/echo-docker.git",
-              "SourceCodeVersion": {
-                "Type": "BRANCH",
-                "Value": "main"
+      - name: Create or update App Runner Service
+        run: |
+          aws apprunner create-service \
+            --service-name echo-api-service \
+            --source-configuration '{
+              "AutoDeploymentsEnabled": true,
+              "CodeRepository": {
+                "CodeConfiguration": {
+                  "ConfigurationSource": "REPOSITORY"
+                },
+                "RepositoryUrl": "https://github.com/fdovzqz/echo-docker.git",
+                "SourceCodeVersion": {
+                  "Type": "BRANCH",
+                  "Value": "main"
+                }
               }
-            }
-          }' \
-          --instance-configuration '{
-            "Cpu": "1 vCPU",
-            "Memory": "2 GB"
-          }' \
-          --region us-east-1 || echo "Service may already exist"
+            }' \
+            --instance-configuration '{
+              "Cpu": "1 vCPU",
+              "Memory": "2 GB"
+            }' \
+            --region us-east-1 || echo "Service may already exist"
 
-    - name: Get Service URL
-      run: |
-        SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
-        echo "App Runner Service URL: $SERVICE_URL" 
+      - name: Get Service URL
+        run: |
+          SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
+          echo "App Runner Service URL: $SERVICE_URL" 
