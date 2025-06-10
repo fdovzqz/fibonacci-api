@@ -36,6 +36,7 @@ jobs:
               --service-name echo-api-service \
               --source-configuration '{
                 "AutoDeploymentsEnabled": true,
+                "AuthenticationConfiguration": {},
                 "CodeRepository": {
                   "CodeConfiguration": {
                     "ConfigurationSource": "REPOSITORY"
