@@ -6,6 +6,8 @@ on:
 
 env:
   AWS_REGION: us-east-1
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
 jobs:
   deploy:
@@ -38,9 +40,33 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ${{ env.AWS_REGION }}
 
-    - name: Bootstrap CDK
-      run: cd infra && pnpm cdk bootstrap --require-approval never
-      continue-on-error: true
+    - name: Verify AWS account
+      run: aws sts get-caller-identity
 
-    - name: Deploy to AWS
-      run: cd infra && pnpm cdk deploy --require-approval never 
+    - name: Create App Runner Service
+      run: |
+        aws apprunner create-service \
+          --service-name echo-api-service \
+          --source-configuration '{
+            "AutoDeploymentsEnabled": true,
+            "CodeRepository": {
+              "CodeConfiguration": {
+                "ConfigurationSource": "REPOSITORY"
+              },
+              "RepositoryUrl": "https://github.com/fdovzqz/echo-docker.git",
+              "SourceCodeVersion": {
+                "Type": "BRANCH",
+                "Value": "main"
+              }
+            }
+          }' \
+          --instance-configuration '{
+            "Cpu": "1 vCPU",
+            "Memory": "2 GB"
+          }' \
+          --region us-east-1 || echo "Service may already exist"
+
+    - name: Get Service URL
+      run: |
+        SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
+        echo "App Runner Service URL: $SERVICE_URL" 

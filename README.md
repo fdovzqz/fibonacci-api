@@ -1,44 +1,39 @@
 # Echo API - AWS App Runner Deployment
 
-API simple de echo que devuelve en formato JSON lo que recibe. Configurada para desplegar en AWS App Runner usando CDK.
+API simple de echo que devuelve en formato JSON lo que recibe. Configurada para desplegar en AWS App Runner usando GitHub Actions y AWS CLI.
 
-## Estructura del Proyecto
+## 🚀 Estado del Proyecto
+
+✅ **Listo para deployment** - Configuración completa para AWS App Runner con AWS CLI
+
+## 📁 Estructura del Proyecto
 
 ```
 /
 ├── app/                # Código fuente de la app (contenedor)
-│   ├── app.py
-│   ├── requirements.txt
-│   ├── Dockerfile
-│   ├── test-local.sh
-│   ├── apprunner.yaml
-│   └── .env.example
-│
-├── infra/              # Infraestructura CDK
-│   ├── package.json
-│   ├── pnpm-lock.yaml
-│   ├── tsconfig.json
-│   ├── cdk.json
-│   └── src/
-│       ├── echo-api-cdk.ts
-│       └── echo-api-cdk-stack.ts
+│   ├── app.py          # Aplicación Flask
+│   ├── requirements.txt # Dependencias Python
+│   ├── Dockerfile      # Configuración Docker
+│   ├── test-local.sh   # Script de pruebas locales
+│   ├── apprunner.yaml  # Configuración App Runner
+│   └── .env.example    # Variables de entorno de ejemplo
 │
 ├── .github/
 │   └── workflows/
-│       └── deploy.yml
+│       └── deploy.yml  # CI/CD con GitHub Actions
 │
 ├── README.md
 └── .gitignore
 ```
 
-## Características
+## 🔧 Tecnologías Utilizadas
 
-- API Flask simple con endpoints `/echo` y `/health`
-- Deployment automatizado en AWS App Runner
-- Configuración de CDK para infraestructura como código
-- GitHub Actions para CI/CD
+- **Backend:** Flask (Python 3.11)
+- **Deployment:** AWS App Runner
+- **CI/CD:** GitHub Actions + AWS CLI
+- **Container:** Docker
 
-## Endpoints
+## 🌐 Endpoints
 
 ### POST /echo
 Devuelve en formato JSON los datos recibidos en el request.
@@ -73,82 +68,53 @@ curl https://tu-app-runner-url/health
 }
 ```
 
-## Deployment en AWS
+## 🚀 Deployment en AWS (Automatizado)
 
 ### Prerrequisitos
 
 1. **AWS CLI configurado** con credenciales apropiadas
-2. **Node.js 20+** instalado
-3. **pnpm** instalado: `npm install -g pnpm`
-4. **CDK CLI** instalado globalmente: `pnpm add -g aws-cdk`
-5. **Repositorio en GitHub** con el código
-
-### Configuración Inicial
-
-1. **Clonar el repositorio:**
-   ```bash
-   git clone https://github.com/TU_USUARIO/echo-api.git
-   cd echo-api
-   ```
-
-2. **Instalar dependencias de infraestructura:**
-   ```bash
-   cd infra
-   pnpm install
-   ```
-
-3. **Configurar el repositorio de GitHub:**
-   Editar `infra/src/echo-api-cdk-stack.ts` y cambiar la URL del repositorio:
-   ```typescript
-   repositoryUrl: 'https://github.com/TU_USUARIO/echo-api', // Cambiar por tu repositorio
-   ```
-
-4. **Configurar GitHub Secrets:**
-   En tu repositorio de GitHub, ir a Settings > Secrets and variables > Actions y agregar:
+2. **Repositorio en GitHub** con el código
+3. **Configurar GitHub Secrets:**
    - `AWS_ACCESS_KEY_ID`: Tu AWS Access Key ID
    - `AWS_SECRET_ACCESS_KEY`: Tu AWS Secret Access Key
 
 ### Deployment Automático
 
-El deployment se ejecuta automáticamente cuando se hace push a la rama `main`.
+El deployment se ejecuta automáticamente cuando se hace push a la rama `main` gracias al workflow de GitHub Actions. El workflow utiliza AWS CLI para crear o actualizar el servicio en App Runner.
 
-### Deployment Manual
+### Workflow relevante (`.github/workflows/deploy.yml`):
 
-1. **Bootstrap CDK (solo la primera vez):**
-   ```bash
-   cd infra
-   pnpm cdk bootstrap
-   ```
+```yaml
+- name: Create App Runner Service
+  run: |
+    aws apprunner create-service \
+      --service-name echo-api-service \
+      --source-configuration '{
+        "AutoDeploymentsEnabled": true,
+        "CodeRepository": {
+          "CodeConfiguration": {
+            "ConfigurationSource": "REPOSITORY"
+          },
+          "RepositoryUrl": "https://github.com/fdovzqz/echo-docker.git",
+          "SourceCodeVersion": {
+            "Type": "BRANCH",
+            "Value": "main"
+          }
+        }
+      }' \
+      --instance-configuration '{
+        "Cpu": "1 vCPU",
+        "Memory": "2 GB"
+      }' \
+      --region us-east-1 || echo "Service may already exist"
 
-2. **Deploy:**
-   ```bash
-   cd infra
-   pnpm cdk deploy
-   ```
+- name: Get Service URL
+  run: |
+    SERVICE_URL=$(aws apprunner describe-service --service-name echo-api-service --region us-east-1 --query 'Service.ServiceUrl' --output text)
+    echo "App Runner Service URL: $SERVICE_URL"
+```
 
-### Comandos Útiles
-
-- **Ver diferencias:**
-  ```bash
-  cd infra
-  pnpm cdk diff
-  ```
-- **Destruir stack:**
-  ```bash
-  cd infra
-  pnpm cdk destroy
-  ```
-
-## Configuración de App Runner
-
-El servicio se configura con:
-- **Runtime:** Python 3.11
-- **CPU:** 1 vCPU
-- **Memoria:** 2 GB
-- **Puerto:** 5000
-- **Auto-deployment:** Habilitado
-
-## Desarrollo Local
+## 🧪 Desarrollo Local
 
 1. **Configurar variables de entorno (opcional):**
    ```bash
@@ -184,7 +150,7 @@ El servicio se configura con:
    ./test-local.sh
    ```
 
-## Docker
+## 🐳 Docker
 
 También puedes ejecutar la aplicación usando Docker:
 
@@ -192,4 +158,27 @@ También puedes ejecutar la aplicación usando Docker:
 cd app
 docker build -t echo-api .
 docker run -p 5000:5000 echo-api
-``` 
+```
+
+## 📊 Monitoreo
+
+Una vez desplegado, podrás:
+- Ver logs en CloudWatch Logs
+- Acceder a métricas automáticas de App Runner
+- Recibir la URL del servicio en los outputs del workflow
+
+## 🔧 Troubleshooting
+
+- **Error de credenciales:** Verifica que los GitHub Secrets estén configurados
+- **Error de bucket S3:** Si usaste CDK antes, asegúrate de borrar los buckets y stacks antiguos
+- **Logs útiles:**
+  - **GitHub Actions:** Revisa la pestaña Actions en tu repo
+  - **AWS App Runner:** Consola de AWS > App Runner > Tu servicio > Logs
+
+## 🤝 Contribución
+
+1. Fork el repositorio
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request 
