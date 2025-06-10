@@ -26,7 +26,7 @@ class FibonacciStack(Stack):
             source_configuration=apprunner.CfnService.SourceConfigurationProperty(
                 auto_deployments_enabled=True,
                 code_repository=apprunner.CfnService.CodeRepositoryProperty(
-                    repository_url="https://github.com/fdovzqz/echo-docker.git",
+                    repository_url="https://github.com/fdovzqz/fibonacci-api",
                     source_code_version=apprunner.CfnService.SourceCodeVersionProperty(
                         type="BRANCH",
                         value="main"
